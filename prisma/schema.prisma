@@ -1,0 +1,33 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       Int     @id @default(autoincrement())
+  correo   String  @unique
+  nombre   String?
+  apellido String?
+
+  // Relación de uno a muchos con Pagos
+  pagos Pagos[] @relation("CreatePagos")
+}
+
+model Pagos {
+  id        Int    @id @default(autoincrement())
+  n_factura String @unique
+
+  // Relación de muchos a uno con User
+  usuario   User? @relation("CreatePagos", fields: [usuarioId], references: [id])
+  usuarioId Int? // Este campo es necesario para mantener la relación
+}
