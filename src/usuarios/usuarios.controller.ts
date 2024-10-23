@@ -1,17 +1,18 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
   Delete,
+  Get,
+  Param,
   ParseIntPipe,
-  UseGuards,
+  Patch,
+  Post,
+  Query,
 } from '@nestjs/common';
-import { UsuariosService } from './usuarios.service';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { UsuariosService } from './usuarios.service';
+import { PaginatorDto } from 'src/common';
 
 @Controller('usuarios')
 export class UsuariosController {
@@ -28,7 +29,7 @@ export class UsuariosController {
   }
 
   @Get()
-  findAll() {
+  findAll(@Query() paginator: PaginatorDto) {
     return this.usuariosService.findAll();
   }
 
@@ -40,13 +41,18 @@ export class UsuariosController {
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
-    @Body() updateUsuarioDto: UpdateUsuarioDto,
+    @Body() updateUsuarioDto: Partial<UpdateUsuarioDto>,
   ) {
     return this.usuariosService.update(id, updateUsuarioDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.usuariosService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.usuariosService.remove(id);
+  }
+
+  @Patch('restore/:id')
+  restore(@Param('id', ParseIntPipe) id: number) {
+    return this.usuariosService.restore(id);
   }
 }

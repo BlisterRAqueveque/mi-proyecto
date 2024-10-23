@@ -4,9 +4,10 @@ import {
   NotFoundException,
   OnModuleInit,
 } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Prisma, PrismaClient } from '@prisma/client';
 import { CreateUsuarioDto } from './dto/create-usuario.dto';
 import { UpdateUsuarioDto } from './dto/update-usuario.dto';
+import { IsNotEmpty } from 'class-validator';
 
 @Injectable()
 // Implementamos OnModuleInit
@@ -28,12 +29,16 @@ export class UsuariosService extends PrismaClient implements OnModuleInit {
   }
   // RESPONSABILIDAD ÚNICA
   findAll() {
-    return this.user.findMany();
+    return this.user.findMany({ where: { fecha_eliminado: null } });
   }
 
-  async findOne(id: number) {
+  //? Trae una sola entidad
+  async findOne(id: number, getDeletes?: boolean) {
+    const where = { id, fecha_eliminado: null };
+    if (getDeletes) delete where['fecha_eliminado'];
+    console.log(where);
     const usuario = await this.user.findFirst({
-      where: { id },
+      where,
       include: { pagos: true },
     });
     if (!usuario) throw new NotFoundException('Usuario no encontrado');
@@ -41,13 +46,23 @@ export class UsuariosService extends PrismaClient implements OnModuleInit {
     return usuario;
   }
 
-  async update(id: number, updateUsuarioDto: UpdateUsuarioDto) {
-    await this.findOne(id);
+  async update(
+    id: number,
+    updateUsuarioDto: Partial<UpdateUsuarioDto>,
+    getDeletes?: boolean,
+  ) {
+    await this.findOne(id, getDeletes);
 
     return this.user.update({ where: { id }, data: updateUsuarioDto });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} usuario`;
+  async remove(id: number) {
+    await this.update(id, { fecha_eliminado: new Date() });
+    return `El usuario #${id} se eliminó con éxito.`;
+  }
+
+  async restore(id: number) {
+    const usuario = await this.update(id, { fecha_eliminado: null }, true);
+    return usuario;
   }
 }

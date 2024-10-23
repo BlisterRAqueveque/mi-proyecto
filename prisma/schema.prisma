@@ -19,15 +19,23 @@ model User {
   nombre   String?
   apellido String?
 
+  fecha_eliminado DateTime?
+
   // Relación de uno a muchos con Pagos
   pagos Pagos[] @relation("CreatePagos")
+
+  @@index([fecha_eliminado])
 }
 
 model Pagos {
   id        Int    @id @default(autoincrement())
   n_factura String @unique
 
+  fecha_eliminado DateTime?
+
   // Relación de muchos a uno con User
   usuario   User? @relation("CreatePagos", fields: [usuarioId], references: [id])
   usuarioId Int? // Este campo es necesario para mantener la relación
+
+  @@index([fecha_eliminado])
 }
